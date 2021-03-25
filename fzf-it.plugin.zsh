@@ -50,3 +50,24 @@ function dce() {
     echo "No container selected"
     fi
 }
+
+function jqit() { # jq interactive filtering
+JQ_PREFIX=" cat $1 | jq -C "
+INITIAL_QUERY=""
+FZF_DEFAULT_COMMAND="$JQ_PREFIX '$INITIAL_QUERY'" fzf \
+    --bind "change:reload:$JQ_PREFIX {q} || true" \
+    --bind "ctrl-r:reload:$JQ_PREFIX ." \
+    --ansi --phony
+}
+
+function rgit() { # jq interactive filtering
+RG_OPTS=${@:2:#}
+FZF_DEFAULT_COMMAND="rg $RG_OPTS -pe '\b\B' $1" fzf \
+    --bind "change:reload:rg $RG_OPTS -pe {q} $1 || true" \
+    --bind "ctrl-r:reload:rg $RG_OPTS -pe '^$' $1" \
+    --bind "ctrl-s:execute-silent(rg -pe {q} $1 > rgit-$(date --iso-8601=seconds))+abort" \
+    --ansi --phony
+    # --preview="echo {} | bat" \
+    # --preview-window="down:30%" \
+}
+
