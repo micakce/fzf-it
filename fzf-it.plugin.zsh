@@ -1,6 +1,5 @@
 CONTAINER_JQ_PATTERN=".[0] | { Id, Image: .Config.Image, Status: .State.Status, Workdir: .Config.WorkingDir, EntryPoint: .Config.Entrypoint,Cmd: .Config.Cmd, Binds: .HostConfig.Binds, Ports: .NetworkSettings.Ports, Mounts, Networks: .NetworkSettings.Networks }"
 CONTAINER_PREVIEW="--preview=docker inspect {1} | jq -C '$CONTAINER_JQ_PATTERN'"
-DOCKER_OPTS="rm\nstart\nstop\nrename\ninspect\ntag\nlogs"
 
 
 function dcl() {
@@ -18,9 +17,10 @@ function dcl() {
         echo "Aborted"
         return
     fi
-    local cmd=$(echo $DOCKER_OPTS | fzf --header="Select command" \
+    local cmd=$(docker container --help | sed 1,5d | fzf \
+    --header-lines=1 \
     --preview="docker container {1} --help | less" \
-    --preview-window="down:70%")
+    --preview-window="down:70%" | awk '{print $1}')
 
     if [ "$cmd" -eq "" 2> /dev/null ]; then
         echo "Not command selected"
@@ -71,3 +71,31 @@ FZF_DEFAULT_COMMAND="rg $RG_OPTS -pe '\b\B' $1" fzf \
     # --preview-window="down:30%" \
 }
 
+
+function dil() { #docker image list insteractive 
+    # https://unix.stackexchange.com/questions/29724/how-to-properly-collect-an-array-of-lines-in-zsh
+    local cid_array=("${(@f)$(docker image ls $@ | fzf \
+        --preview="docker inspect {3} | jq -C ." \
+        --preview-window="down:70%" \
+        --bind "ctrl-y:execute-silent(echo -n {3} | xclip -selection clipboard )+abort" \
+        --bind "alt-i:execute(docker inspect {3} | jq -C . | less -R > /dev/tty)" \
+        --header="Docker image list " \
+        --header-lines=1 -m | awk '{print $3}')}")
+
+    if [ "${cid_array[1]}" -eq "" 2> /dev/null ]; then
+        echo "Aborted"
+        return
+    fi
+
+    local cmd=$(docker image --help | sed 1,5d | fzf \
+    --header-lines=1 \
+    --preview="docker image {1} --help | less" \
+    --preview-window="down:60%" | awk '{print $1}')
+
+    if [ "$cmd" -eq "" 2> /dev/null ]; then
+        echo "Not command selected"
+        return
+    fi
+
+    print -z docker image $cmd ${cid_array[@]}
+}
