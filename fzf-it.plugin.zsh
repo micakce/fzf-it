@@ -66,9 +66,9 @@ FZF_DEFAULT_COMMAND="rg $RG_OPTS -pe '\b\B' $1" fzf \
     --bind "change:reload:rg $RG_OPTS -pe {q} $1 || true" \
     --bind "ctrl-r:reload:rg $RG_OPTS -pe '^$' $1" \
     --bind "ctrl-s:execute-silent(rg -pe {q} $1 > rgit-$(date --iso-8601=seconds))+abort" \
+    --preview="echo {} | bat" \
+    --preview-window="down:30%:wrap" \
     --ansi --phony
-    # --preview="echo {} | bat" \
-    # --preview-window="down:30%" \
 }
 
 
