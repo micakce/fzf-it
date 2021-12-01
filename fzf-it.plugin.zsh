@@ -60,17 +60,18 @@ FZF_DEFAULT_COMMAND="$JQ_PREFIX '$INITIAL_QUERY'" fzf \
     --ansi --phony
 }
 
-function rgit() { # jq interactive filtering
-RG_OPTS=${@:2:#}
-FZF_DEFAULT_COMMAND="rg $RG_OPTS -pe '\b\B' $1" fzf \
-    --bind "change:reload:rg $RG_OPTS -pe {q} $1 || true" \
-    --bind "ctrl-r:reload:rg $RG_OPTS -pe '^$' $1" \
-    --bind "ctrl-s:execute-silent(rg -pe {q} $1 > rgit-$(date --iso-8601=seconds))+abort" \
+function rgit() { # rg interactive filtering
+  RG_OPTS=$(echo ${@} | grep -Eo '(^-\w+|\s-\w+)' | awk '{print}' ORS='')
+  FILES=$(echo ${@} | grep -Eo '(^|\s)([A-Za-z0-9_]+[_.-]*[A-Za-z0-9])+' | awk '{print}' ORS='')
+  FZF_DEFAULT_COMMAND="rg $RG_OPTS -pe '\b\B' $FILES" fzf \
+    --bind "change:reload:rg $RG_OPTS -pe {q} $FILES || true" \
+    --bind "ctrl-r:reload:rg $RG_OPTS -pe '\b\B' $FILES" \
+    --bind "alt-l:reload:rg  $RG_OPTS -lpe {q} $FILES" \
+    --bind "ctrl-s:execute-silent(rg -pe {q} $FILES | sed -r 's/\x1b\[[^@-~]*[@-~]//g' > rgit-{q})+abort" \
     --preview="echo {} | bat" \
     --preview-window="down:30%:wrap" \
     --ansi --phony
 }
-
 
 function dil() { #docker image list insteractive 
     # https://unix.stackexchange.com/questions/29724/how-to-properly-collect-an-array-of-lines-in-zsh
