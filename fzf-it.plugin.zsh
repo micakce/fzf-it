@@ -63,9 +63,9 @@ FZF_DEFAULT_COMMAND="$JQ_PREFIX '$INITIAL_QUERY'" fzf \
 function rgit() { # rg interactive filtering
   RG_OPTS=$(echo ${@} | grep -Eo '(^-\w+|\s-\w+)' | awk '{print}' ORS='')
   FILES=$(echo ${@} | grep -Eo '(^|\s)([A-Za-z0-9_]+[_.-]*[A-Za-z0-9])+' | awk '{print}' ORS='')
-  FZF_DEFAULT_COMMAND="rg $RG_OPTS -pe '\b\B' $FILES" fzf \
+  FZF_DEFAULT_COMMAND="echo Type to searching in files: $FILES" fzf \
     --bind "change:reload:rg $RG_OPTS -pe {q} $FILES || true" \
-    --bind "ctrl-r:reload:rg $RG_OPTS -pe '\b\B' $FILES" \
+    --bind "ctrl-r:reload:rg $RG_OPTS -pe '^$' $FILES" \
     --bind "alt-l:reload:rg  $RG_OPTS -lpe {q} $FILES" \
     --bind "ctrl-s:execute-silent(rg -pe {q} $FILES | sed -r 's/\x1b\[[^@-~]*[@-~]//g' > rgit-{q})+abort" \
     --preview="echo {} | bat" \
