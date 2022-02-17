@@ -2,7 +2,7 @@ CONTAINER_JQ_PATTERN=".[0] | { Id, Image: .Config.Image, Status: .State.Status, 
 CONTAINER_PREVIEW="--preview=docker inspect {1} | jq -C '$CONTAINER_JQ_PATTERN'"
 
 
-function dcl() {
+function dkl() {
     # https://unix.stackexchange.com/questions/29724/how-to-properly-collect-an-array-of-lines-in-zsh
     local args=$@;
     local cid_array=("${(@f)$(docker ps $args -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" \
@@ -31,7 +31,7 @@ function dcl() {
 }
 
 
-function dce() {
+function dke() {
     local cname opts
     read cname <<< $(docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" \
         | fzf $CONTAINER_PREVIEW \
