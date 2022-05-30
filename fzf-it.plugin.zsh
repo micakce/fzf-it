@@ -5,7 +5,7 @@ CONTAINER_PREVIEW="--preview=docker inspect {1} | jq -C '$CONTAINER_JQ_PATTERN'"
 function dkl() {
     # https://unix.stackexchange.com/questions/29724/how-to-properly-collect-an-array-of-lines-in-zsh
     local args=$@;
-    local cid_array=("${(@f)$(docker ps $args -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" \
+    local cid_array=("${(@f)$(docker ps $args -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" \
         | fzf $CONTAINER_PREVIEW \
         --bind "ctrl-y:execute-silent(echo -n {1} | xclip -selection clipboard )+abort" \
         --bind "alt-i:execute(docker inspect {1} | jq -C . | less -R > /dev/tty)" \
