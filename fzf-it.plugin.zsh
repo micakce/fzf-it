@@ -44,12 +44,31 @@ function dke() {
         echo "Docker container:" $cname
         vared -p "Options: " opts
         read 'cmd?Command: '
-        # [ -n "$cmd" ] && print -z docker exec "$opts" "$cname" "$cmd" || echo "No command selected"
-        [ -n "$cmd" ] && docker exec "$opts" "$cname" "$cmd" || echo "No command provided"
+        [ -n "$cmd" ] && print -z docker exec "$opts" "$cname" "$cmd" || echo "No command selected"
+        # [ -n "$cmd" ] && docker exec "$opts" "$cname" "$cmd" || echo "No command provided"
     else
     echo "No container selected"
     fi
 }
+
+function dkgu() {
+    # https://unix.stackexchange.com/questions/29724/how-to-properly-collect-an-array-of-lines-in-zsh
+    local args=$@;
+    local cid_array=("${(@f)$(docker ps $args -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" \
+      | fzf $CONTAINER_PREVIEW \
+      --bind "ctrl-y:execute-silent(echo -n {1} | xclip -selection clipboard )+abort" \
+      --bind "alt-i:execute(docker inspect {1} | jq -C . | less -R > /dev/tty)" \
+      --header="Select container(s) " \
+      --preview-window="down:70%" \
+      --header-lines=1 -m | awk '{print $1}')}")
+
+    if [ "${cid_array[1]}" -eq "" 2> /dev/null ]; then
+      echo "Aborted"
+      return
+    fi
+
+    print -z "docker container stop ${cid_array[@]}; docker container rm -f ${cid_array[@]}"
+  }
 
 function jqit() { # jq interactive filtering
 JQ_PREFIX=" cat $1 | jq -C "
