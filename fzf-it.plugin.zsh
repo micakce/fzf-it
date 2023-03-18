@@ -30,6 +30,38 @@ function dkl() {
     print -z docker container $cmd ${cid_array[@]}
 }
 
+function dcpl() {
+    # https://unix.stackexchange.com/questions/29724/how-to-properly-collect-an-array-of-lines-in-zsh
+    local args=$@;
+    local cid_array=("${(@f)$(docker compose ps $args --services -a \
+        | fzf $CONTAINER_PREVIEW \
+        --bind "ctrl-y:execute-silent(echo -n {1} | xclip -selection clipboard )+abort" \
+        --bind "alt-i:execute(docker inspect {1} | jq -C . | less -R > /dev/tty)" \
+        --header="Select container(s) " \
+        --preview="docker compose ps --format json {1} | jq -C . | less -R" \
+        --preview-window="right:80%" \
+         -m | awk '{print $1}')}")
+
+    if [ "${cid_array[1]}" -eq "" 2> /dev/null ]; then
+        echo "Aborted"
+        return
+    fi
+    local cmd=$(docker compose --help | awk '/^Commands/{flag=1} flag == 1 {print $0}; flag == 1 && length($0) == 0 {exit}' | fzf \
+    --header-lines=1 \
+    --preview="docker compose {1} --help | less" \
+    --preview-window="down:70%" | awk '{print $1}')
+
+    if [ "$cmd" = "" 2> /dev/null ]; then
+        echo "Not command selected"
+        return
+    fi
+
+    local opts="--follow --tail 100 --since 30s "
+    vared -p "Options: " opts
+    print -z docker compose "$cmd" "$opts" ${cid_array[@]}
+
+}
+
 
 function dke() {
     local cname opts
